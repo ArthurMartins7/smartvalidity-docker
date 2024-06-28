@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  # Serviço para o MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_database
+    ports:
+      - "3307:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: SmartValidity
+      MYSQL_USER: senac
+      MYSQL_PASSWORD: root
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./SmartValidity/src/main/resources/scripts:/docker-entrypoint-initdb.d
+    networks:
+          - network-smartvalidity
+
+# Serviço para a sua aplicação Java
+  java_app:
+    build:
+      context: ./SmartValidity
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - network-smartvalidity
+  
+  angular_app:
+    build:
+      context: ./smartvalidity-fe
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    depends_on:
+      - java_app
+    networks:
+      - network-smartvalidity
+
+networks:
+    network-smartvalidity:
